@@ -1,0 +1,24 @@
+%
+% SUNBURN DATA
+% This file is a modified version of http://www.hakank.org/weka/sunburn.arf
+% additional
+
+@RELATION 'sunburn'% THIS IS A COMMENT
+
+@ATTRIBUTE 'weight'   {blonde, brown, red}
+@ATTRIBUTE 'height' {short, average, tall}
+@ATTRIBUTE weight   {light, average, heavy}
+@ATTRIBUTE 'lotion' {yes,no}
+@ATTRIBUTE 'burned' {burned, none}  % THIS IS A COMMENT
+@attribute col_17 INTEGER
+
+@DATA% THIS IS A TEST
+?,	average,light,	no, burned, 1   % THIS IS A COMMENT
+blonde,	tall,	average,yes, none, 2% THIS IS A COMMENT
+brown,	short,	average,yes, none, 3
+blonde,	short,	average,no, burned, 4
+red,	average,heavy,	no, burned, 5
+brown,	tall,	heavy,	no, none, 6
+brown,	average,heavy,	no, none, 7
+blonde,	short,	light,	yes, none, 4
+{1 blonde, 2 average, 3 heavy, 4 none}    % THIS IS A SPARSE DATA INSTANCE SPECIFICATION
