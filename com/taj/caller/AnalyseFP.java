@@ -19,35 +19,21 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Wrapper to call the library from R.
+ * Wrapper to call the library FP Growth algorithm from R.
  */
 public class AnalyseFP {
 
     public static void main(String [] arg) throws Exception{
-        doIt("/home/geantvert/workspace/FEC Visualization/arfff", "/home/geantvert/workspace/FEC Visualization/result");
+        doIt("/home/geantvert/workspace/FEC Visualization/arfff", "/home/geantvert/workspace/FEC Visualization/result", 0.3d, 0.3d);
     }
 
-    public static void doIt(String arffPath, String convertedFilePath) throws IOException {
+    public static void doIt(String arffPath, String convertedFilePath, double minsupp, double minconf) throws IOException {
 
-        if (!new File(arffPath).exists()) {
-            throw new IllegalArgumentException("Input file " + arffPath + " doesn't exist.\nNo conversion possible.");
-        }
+        System.out.print("Started...\n");
 
-        File output = new File(convertedFilePath);
+        Map<Integer, String> conversionMap = convertArffToSPMF(arffPath, convertedFilePath);
 
-        if(output.exists()) {
-            output.delete();
-        }
 
-        int transactionCount = Integer.MAX_VALUE;  // the number of transaction from the input file to be converted
-
-        // Create a converter
-        TransactionDatabaseConverter converter = new TransactionDatabaseConverter();
-        // Call the method to convert the input file from ARFF to the SPMF format
-        Map<Integer, String> conversionMap = converter.convertARFFandReturnMap(arffPath, convertedFilePath, transactionCount);
-
-        // STEP 1: Applying the FP-GROWTH algorithm to find frequent itemsets
-        double minsupp = 0.3;
         AlgoFPGrowth fpgrowth = new AlgoFPGrowth();
         Itemsets patterns = fpgrowth.runAlgorithm(convertedFilePath, null, minsupp);
         int databaseSize = fpgrowth.getDatabaseSize();
@@ -55,7 +41,7 @@ public class AnalyseFP {
 
         // STEP 2: Generating all rules from the set of frequent itemsets (based on Agrawal & Srikant, 94)
         double  minlift = 0;
-        double  minconf = 0.30;
+
         AlgoAgrawalFaster94 algoAgrawal = new AlgoAgrawalFaster94();
         // the next line run the algorithm.
         // Note: we pass null as output file path, because we don't want
@@ -76,21 +62,46 @@ public class AnalyseFP {
         for(AssocRule rule : rules){
             String left = printItemSet(rule.getItemset1(), conversionMap);
             String right = printItemSet(rule.getItemset2(), conversionMap);
-            System.out.print("  rule " + i + ":  " + left + " ==> " + right);
-           System.out.print("support :  " + rule.getRelativeSupport(databaseSize) +
-                    " (" + rule.getAbsoluteSupport() + "/" + databaseSize + ") ");
-            System.out.print("confidence :  " + rule.getConfidence());
-           System.out.print(" lift :  " + rule.getLift());
-            System.out.println("");
+            System.out.print(left + ";" + right + "\n");
+//            System.out.print("  rule " + i + ":  " + left + " ==> " + right);
+//           System.out.print("support :  " + rule.getRelativeSupport(databaseSize) +
+//                    " (" + rule.getAbsoluteSupport() + "/" + databaseSize + ") ");
+//            System.out.print("confidence :  " + rule.getConfidence());
+//           System.out.print(" lift :  " + rule.getLift());
+//            System.out.println("");
             i++;
         }
         System.out.println(" --------------------------------");
     }
 
+    static public Map<Integer, String> convertArffToSPMF(String arffPath, String convertedFilePath) throws IOException {
+        if (!new File(arffPath).exists()) {
+            throw new IllegalArgumentException("Input file " + arffPath + " doesn't exist.\nNo conversion possible.");
+        }
+        File output = new File(convertedFilePath);
+        if(output.exists()) {
+            output.delete();
+        }
+        TransactionDatabaseConverter converter = new TransactionDatabaseConverter();
+        // Call the method to convert the input file from ARFF to the SPMF format
+        return converter.convertARFFandReturnMap(arffPath, convertedFilePath, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Convert the Int[] to a human readable String
+     * @param input
+     * @param conversionMap
+     * @return
+     */
     static private String printItemSet(int[] input, Map<Integer, String> conversionMap){
         return convertItemSetToString(convertItemSet(input, conversionMap));
     }
 
+    /**
+     * Build readable ItemSet String from Int[]
+     * @param ItemSet
+     * @return
+     */
     static private String convertItemSetToString(String[] ItemSet){
         StringBuilder sb = new StringBuilder(50);
         for(String set : ItemSet) {
@@ -99,6 +110,12 @@ public class AnalyseFP {
         return sb.toString();
     }
 
+    /**
+     * Replace the Int by their real name
+     * @param input
+     * @param conversionMap
+     * @return
+     */
     static private String[] convertItemSet(int[] input, Map<Integer, String> conversionMap) {
         String[] result = new String[input.length];
         int count = 0;
