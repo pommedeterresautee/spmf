@@ -129,3 +129,4 @@ out
 # Java class files
 *.class
 
+.Rproj.user
