@@ -3,7 +3,7 @@ require(XLConnect)  # Excel files
 #require(scales) # Help to manage Dates
 
 
-pathExcelFile <- "AssociationRules.xlsx"
+pathExcelFile <- "Data/AssociationRules.xlsx"
 
 data <- readWorksheetFromFile(file = pathExcelFile, header = TRUE, sheet = 1)
 
