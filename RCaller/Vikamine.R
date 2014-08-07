@@ -32,6 +32,8 @@ p1 <- p1[c(1:15),]
 
 View(p1)
 
+
+.jinit( parameters="-Xmx8000m")
 # Read CSV
 SCC324_319472775FEC20121231 <- read.delim("~/FEC/SCC324_319472775FEC20121231.csv", dec=",")
 
@@ -41,7 +43,7 @@ SCC324_319472775FEC20121231$Credit <- ifelse(SCC324_319472775FEC20121231$Credit=
 
 
 #delete some columns
-toDelete <- c("Débit","Crédit", "Solde", "Chrono", "EcritureNum", "COUNT1", "CompteLib", "EcritureLib", "JournalPrincipal", "JournalLib", "CompAuxLib")
+toDelete <- c("Débit","Crédit", "Solde", "Chrono", "COUNT1", "CompteLib", "EcritureLib", "JournalPrincipal", "JournalLib", "CompAuxLib")
 SCC324_319472775FEC20121231 <- SCC324_319472775FEC20121231[,!(names(SCC324_319472775FEC20121231) %in% toDelete)]
 
 #remove univalue columns
@@ -58,4 +60,15 @@ SCC324_319472775FEC20121231 <- as.data.frame(lapply(SCC324_319472775FEC20121231,
 #write file to the HD
 write.arff(SCC324_319472775FEC20121231, "/home/geantvert/toto.arff")
 
-task <- CreateSDTask("/home/geantvert/toto.arff", as.target("JournalCode", "RAN"),new("SDTaskConfig", method="bsd", maxlen = 2, k = 100, minsize = 20, qf = "wracc", postfilter = "min-improve-set"))
+task <- CreateSDTask("/home/geantvert/toto.arff", as.target("C", "401110"),new("SDTaskConfig", method="bsd", maxlen = 2, k = 100, minsize = 20, qf = "wracc", postfilter = "min-improve-set"))
+
+
+require(foreign)
+data <- read.arff("/home/geantvert/toto.arff")
+
+library(doParallel)
+registerDoParallel(cores=7)
+y <- data$F
+vars <- c(1:3)
+require(bigrf)
+forest <- bigrfc(data, y, ntree=30L, varselect=vars)
